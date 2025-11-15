@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: zapcut_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-zapcut_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zapcut_password}
+      POSTGRES_DB: ${POSTGRES_DB:-zapcut_adgen}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zapcut_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zapcut_network
+
+  # Redis Cache and Queue
+  redis:
+    image: redis:7-alpine
+    container_name: zapcut_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - zapcut_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zapcut_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-zapcut_user}:${POSTGRES_PASSWORD:-zapcut_password}@postgres:5432/${POSTGRES_DB:-zapcut_adgen}
+      REDIS_URL: redis://redis:6379/0
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-zapcut-adgen-dev}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      DEBUG: ${DEBUG:-True}
+    volumes:
+      - ./app:/app/app  # Mount app directory for hot reload in development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - zapcut_network
+
+  # RQ Worker (for background jobs)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zapcut_worker
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-zapcut_user}:${POSTGRES_PASSWORD:-zapcut_password}@postgres:5432/${POSTGRES_DB:-zapcut_adgen}
+      REDIS_URL: redis://redis:6379/0
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-zapcut-adgen-dev}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: rq worker --url redis://redis:6379/0 default
+    networks:
+      - zapcut_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  zapcut_network:
+    driver: bridge
