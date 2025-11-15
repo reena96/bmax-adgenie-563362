@@ -1,0 +1,13 @@
+{
+  "name": "bmax-pipe",
+  "version": "1.0.0",
+  "description": "BMAD Core pipeline and orchestration",
+  "private": true,
+  "scripts": {
+    "shard": "md-tree explode"
+  },
+  "devDependencies": {
+    "@kayvan/markdown-tree-parser": "^1.0.0"
+  }
+}
+
