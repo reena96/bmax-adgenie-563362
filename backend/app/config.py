@@ -67,15 +67,25 @@ class Settings(BaseSettings):
     # JWT/Authentication Settings
     secret_key: str = Field(
         default_factory=lambda: secrets.token_urlsafe(32),
-        description="Secret key for JWT token signing"
+        description="Secret key for JWT token signing (MUST be set in production)"
     )
     algorithm: str = Field(
         default="HS256",
         description="JWT algorithm"
     )
     access_token_expiry_minutes: int = Field(
-        default=30,
+        default=15,
         description="Access token expiry time in minutes"
+    )
+    refresh_token_expiry_days: int = Field(
+        default=7,
+        description="Refresh token expiry time in days"
+    )
+
+    # OAuth Settings
+    google_oauth_client_id: str | None = Field(
+        default=None,
+        description="Google OAuth Client ID for google-signin endpoint"
     )
 
     # AWS/S3 Settings
@@ -90,6 +100,10 @@ class Settings(BaseSettings):
     s3_bucket_name: str | None = Field(
         default=None,
         description="S3 bucket name for asset storage"
+    )
+    s3_region: str = Field(
+        default="us-east-1",
+        description="AWS S3 region"
     )
 
     # External API Keys (for future use)
@@ -133,6 +147,33 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Check if running in production mode."""
         return self.environment == "production"
+
+    def validate_production_config(self) -> None:
+        """
+        Validate that required environment variables are set in production.
+
+        Raises:
+            ValueError: If required production settings are missing or weak
+        """
+        if not self.is_production:
+            return
+
+        errors = []
+
+        # Validate JWT secret key is strong
+        if len(self.secret_key) < 32:
+            errors.append("SECRET_KEY must be at least 32 characters in production")
+
+        # Validate database URL is not default
+        if "localhost" in self.database_url:
+            errors.append("DATABASE_URL must not use localhost in production")
+
+        # Validate frontend URL is set
+        if "localhost" in self.frontend_url:
+            errors.append("FRONTEND_URL must be a production domain")
+
+        if errors:
+            raise ValueError(f"Production configuration errors: {', '.join(errors)}")
 
     def get_database_url(self, async_driver: bool = False) -> str:
         """

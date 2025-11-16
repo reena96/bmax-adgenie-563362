@@ -77,3 +77,36 @@ class ExternalServiceException(AppException):
 
     def __init__(self, message: str = "External service error", details: dict[str, Any] | None = None):
         super().__init__(message, status_code=503, details=details)
+
+
+# S3-specific exceptions
+class S3ConnectionError(Exception):
+    """Raised when S3 connection cannot be established or fails."""
+
+    def __init__(self, message: str = "Failed to connect to S3"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class S3UploadError(Exception):
+    """Raised when file upload to S3 fails."""
+
+    def __init__(self, message: str = "Failed to upload file to S3"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class InvalidFileError(Exception):
+    """Raised when file validation fails."""
+
+    def __init__(self, message: str = "Invalid file"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class FileValidationError(Exception):
+    """Raised when file validation fails with specific validation errors."""
+
+    def __init__(self, message: str = "File validation failed"):
+        self.message = message
+        super().__init__(self.message)

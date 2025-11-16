@@ -17,6 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import settings
 from app.exceptions import AppException
 from app.middleware.logging import LoggingMiddleware
+from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.error_handler import (
     app_exception_handler,
     http_exception_handler,
@@ -45,6 +46,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Log Level: {settings.log_level}")
     logger.info("=" * 60)
+
+    # Validate production configuration
+    try:
+        settings.validate_production_config()
+        if settings.is_production:
+            logger.info("Production configuration validated successfully")
+    except ValueError as e:
+        logger.error(f"Production configuration error: {e}")
+        if settings.is_production:
+            raise  # Fail fast in production
 
     # Verify database connection
     from app.database import check_database_connection
@@ -85,6 +96,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Add security headers middleware
+    app.add_middleware(SecurityHeadersMiddleware)
+
     # Add logging middleware
     app.add_middleware(LoggingMiddleware)
 
@@ -101,6 +115,7 @@ def create_app() -> FastAPI:
     from app.routes.projects import router as projects_router
     from app.routes.chat import router as chat_router
     from app.routes.scripts import router as scripts_router
+    from app.routes.assets import router as assets_router
 
     # Include routers with prefixes
     app.include_router(health_router, prefix="/api", tags=["Health"])
@@ -109,6 +124,7 @@ def create_app() -> FastAPI:
     app.include_router(projects_router, prefix="/api/projects", tags=["Projects"])
     app.include_router(chat_router, prefix="/api/chat", tags=["Chat"])
     app.include_router(scripts_router, prefix="/api/scripts", tags=["Scripts"])
+    app.include_router(assets_router, prefix="/api/assets", tags=["Assets"])
 
     logger.info("FastAPI application created successfully")
 

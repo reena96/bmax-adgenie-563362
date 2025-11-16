@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cosmic-dark text-white font-sans;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  /* Glass Card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  /* Glass Input */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #FFFFFF;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-input:focus {
+    border-color: #FFEB3B;
+    box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.2);
+  }
+
+  /* Primary Button */
+  .btn-primary {
+    background: linear-gradient(135deg, #FFEB3B 0%, #FFC107 100%);
+    color: #0A0E27;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 12px 24px;
+    box-shadow: 0 4px 16px rgba(255, 235, 59, 0.3);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 235, 59, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 235, 59, 0.3);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Cosmic Gradient Background */
+  .cosmic-gradient {
+    background: linear-gradient(135deg, #0A0E27 0%, #1A2332 50%, #0F1419 100%);
+  }
+}

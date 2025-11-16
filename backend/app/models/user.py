@@ -24,6 +24,11 @@ class User(Base):
     email = Column(String(255), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False)
 
+    # Authentication columns (nullable for OAuth-only users)
+    password_hash = Column(String(255), nullable=True)
+    google_oauth_id = Column(String(255), nullable=True, index=True)
+    oauth_provider = Column(Enum('google', 'github', name='oauth_provider'), nullable=True)
+
     # Subscription type enum
     subscription_type = Column(
         Enum('free', 'pro', 'enterprise', name='subscription_type'),
